@@ -91,7 +91,20 @@ bot.command("start", async (ctx) => {
 
 bot.on("message", async (ctx) => {
   const { text } = ctx.message;
-
+  if (ctx.session.awaitingRetryConfirmation) {
+    if (text === 'Да') {
+      const category = ctx.session.awaitingRetryConfirmation;
+      ctx.session.askedQuestions[category] = [];
+      ctx.session.firstAttempt = false;
+      ctx.session.awaitingRetryConfirmation = null;
+      await startQuiz(ctx, category);
+    } else if (text === 'Нет') {
+      ctx.session.awaitingRetryConfirmation = null;
+      const startKeyboard = getStartKeyboard();
+      await ctx.reply('Выберите категорию:', { reply_markup: startKeyboard });
+    }
+    return;
+  }
   if (text === "Назад ↩️") {
     const startKeyboard = getStartKeyboard();
     await ctx.reply("Выберите категорию:", { reply_markup: startKeyboard });
